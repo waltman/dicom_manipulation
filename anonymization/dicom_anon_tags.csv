@@ -55,5 +55,6 @@ Content Sequence,0x0040A730,Remove
 Storage Media File-set UID,0x00880140,Keep
 Referenced Frame of Reference UID,0x30060024,Keep
 Related Frame of Reference UID,0x300600C2,Keep
+Original Attributes Sequence,0x04000561,Remove
 ,,
 Source,ftp://medical.nema.org/medical/dicom/2008/08_15pu.pdf,
