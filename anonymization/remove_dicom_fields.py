@@ -8,9 +8,12 @@ from glob import glob
 import traceback as tb
 import logging as log
 from pandas import read_csv
+from tempfile import mkdtemp
+from shutil import rmtree
 
 import id_linking as il
-    
+from dm_dbt import DM_DBT
+
 ## Create a logger
 try:  # Python 2.7+
     from logging import NullHandler
@@ -82,7 +85,7 @@ def discover_files(input_dir, recursive = False):
 
     return src_files
 
-def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to_replace = None, study_id = None, odir = None):
+def anonymize_input(fname, fields_to_remove, fields_to_replace = None, dates_to_replace = None, study_id = None, odir = None):
 
     logger.debug('Anonymizing %s' % fname)
 
@@ -91,7 +94,9 @@ def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to
     head, tail = os.path.split(fname)
     _, dir_id = os.path.split(head)
 
-    ds = dicom.read_file(fname)
+#    ds = dicom.read_file(fname)
+    dm_dbt = DM_DBT(fname, logger)
+    ds = dm_dbt.dcm
     
     if ds[0x0008, 0x0050].value.isdigit():
         dummy_id = il.get_fake_ID(ds[0x0008, 0x0050].value, _shift_pattern)
@@ -110,9 +115,13 @@ def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to
     header = ['AccessionNumber', 'InputDir', 'DummyID']
     write_to_csv(csvout, [ds[0x0008, 0x0050].value, dir_id, dummy_id], header, fname)
 
+    tmpdir = mkdtemp()
+    dm_dbt.decompress(tmpdir)
+    dm_dbt.expand(tmpdir)
+
     fout = os.path.join(odir, tail)
 
-    for tag in fields_to_replace:    
+    for tag in fields_to_replace:
         if tag in ds:
             logger.debug('Tag to replace: %s %s' % (ds[tag].tag, ds[tag].name))
             if ds[tag].value.isdigit():
@@ -121,25 +130,24 @@ def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to
             else:
                 logger.warning('Tag value of %s %s is not numeric thus shifting is not supported. Removing tag value instead.' % (ds[tag].tag, ds[tag].name))
                 ds[tag].value = ''
-              
+
     for tag in fields_to_remove:
         if tag in ds:
             logger.debug('Tag to remove: %s %s' % (ds[tag].tag, ds[tag].name))
             ds[tag].value = '' #'Anonymized'
-            
-            
+
     for tag in dates_to_replace:
         if tag in ds:
             dummy_date = il.get_fake_ID(ds[tag].value, _date_shift_pattern)
             ds[tag].value = dummy_date #'Anonymized'
-            
+
     if study_id is not None and (0x0020, 0x0010) in ds:
         ds[0x0020, 0x0010].value = study_id
     
     ds.save_as(fout)
     logger.debug('Anonymized %s' % fout)
     return 0
-    
+
 def write_to_csv(fname, array, header, subject):
     head, tail = os.path.split(fname)
     if not os.path.isdir(head):
@@ -170,6 +178,40 @@ def write_to_csv(fname, array, header, subject):
             writer = csv.writer(f, delimiter = ',')
             writer.writerow(header)
             writer.writerow(array)
+
+def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to_replace = None, study_id = None, odir = None):
+
+    logger.debug('Anonymizing fields in %s' % fname)
+
+    _, tail = os.path.split(fname)
+    fout = os.path.join(odir, tail)
+
+    for tag in fields_to_replace:
+        if tag in ds:
+            logger.debug('Tag to replace: %s %s' % (ds[tag].tag, ds[tag].name))
+            if ds[tag].value.isdigit():
+                dummy_id = il.get_fake_ID(ds[tag].value, _shift_pattern)
+                ds[tag].value = dummy_id #'Anonymized'
+            else:
+                logger.warning('Tag value of %s %s is not numeric thus shifting is not supported. Removing tag value instead.' % (ds[tag].tag, ds[tag].name))
+                ds[tag].value = ''
+
+    for tag in fields_to_remove:
+        if tag in ds:
+            logger.debug('Tag to remove: %s %s' % (ds[tag].tag, ds[tag].name))
+            ds[tag].value = '' #'Anonymized'
+
+    for tag in dates_to_replace:
+        if tag in ds:
+            dummy_date = il.get_fake_ID(ds[tag].value, _date_shift_pattern)
+            ds[tag].value = dummy_date #'Anonymized'
+
+    if study_id is not None and (0x0020, 0x0010) in ds:
+        ds[0x0020, 0x0010].value = study_id
+
+    ds.save_as(fout)
+    logger.debug('Anonymized %s' % fout)
+    return 0
 
 def create_parser():
     import argparse
@@ -270,7 +312,7 @@ def main(argv = None):
     status_codes = []    
     for f in dcms:
         try:
-            status=anonymize_fields(f, args.fields, fields_to_replace = _fields_to_replace, dates_to_replace = _fields_to_replace_date, study_id = args.study_id, odir = odir)
+            status=anonymize_input(f, args.fields, fields_to_replace = _fields_to_replace, dates_to_replace = _fields_to_replace_date, study_id = args.study_id, odir = odir)
         except:
             logger.error('Failed to anonymize %s' % f)
             tb.print_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
