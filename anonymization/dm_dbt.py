@@ -20,7 +20,9 @@ class DM_DBT:
         self.compname = None
         self.tmpfiles = []
         self.tomofiles = []
-        
+
+    def anon_file(self, tmpdir):
+        return os.path.join(tmpdir, os.path.basename(self.fname))
 
     def is_mammo(self):
         if 'PresentationIntentType' not in self.dcm:
@@ -112,3 +114,11 @@ class DM_DBT:
             self.logger.debug('OK')
             self.tomofiles = glob(os.path.join(tmpdir, 'image*.dcm'))
             self.tmpfiles += self.tomofiles
+
+    def files(self, tmpdir):
+        if self.tomofiles:
+            return self.tomofiles
+        elif self.compname:
+            return self.compname
+        else:
+            return self.anon_file(tmpdir)
