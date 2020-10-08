@@ -70,7 +70,8 @@ class DM_DBT:
         # construct command to run
         root = os.path.dirname(__file__)
         exe = os.path.join(root, 'hologic', 'gdcmconv.exe')
-        command = '%s -w %s %s' % (exe, self.fname, self.compname)
+        infile = os.path.join(tmpdir, fname + ext)
+        command = '%s -w %s %s' % (exe, infile, self.compname)
 
         # run the program
         self.logger.debug('Decompressing')
@@ -90,8 +91,10 @@ class DM_DBT:
             return
         
         # create name for output file in tmpdir
-        in_fname = self.compname if self.compname else self.fname
-#        fname, ext = os.path.splitext(os.path.basename(in_fname))
+        if self.compname:
+            in_fname = self.compname
+        else:
+            in_fname = os.path.join(tmpdir, self.fname)
 
         # construct command to run
         root = os.path.dirname(__file__)
