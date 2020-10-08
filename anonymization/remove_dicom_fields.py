@@ -116,36 +116,10 @@ def anonymize_input(fname, fields_to_remove, fields_to_replace = None, dates_to_
     write_to_csv(csvout, [ds[0x0008, 0x0050].value, dir_id, dummy_id], header, fname)
 
     tmpdir = mkdtemp()
+    anonymize_fields(dm_dbt, fields_to_remove, fields_to_replace, dates_to_replace, study_id, tmpdir)
     dm_dbt.decompress(tmpdir)
     dm_dbt.expand(tmpdir)
 
-    fout = os.path.join(odir, tail)
-
-    for tag in fields_to_replace:
-        if tag in ds:
-            logger.debug('Tag to replace: %s %s' % (ds[tag].tag, ds[tag].name))
-            if ds[tag].value.isdigit():
-                dummy_id = il.get_fake_ID(ds[tag].value, _shift_pattern)
-                ds[tag].value = dummy_id #'Anonymized'
-            else:
-                logger.warning('Tag value of %s %s is not numeric thus shifting is not supported. Removing tag value instead.' % (ds[tag].tag, ds[tag].name))
-                ds[tag].value = ''
-
-    for tag in fields_to_remove:
-        if tag in ds:
-            logger.debug('Tag to remove: %s %s' % (ds[tag].tag, ds[tag].name))
-            ds[tag].value = '' #'Anonymized'
-
-    for tag in dates_to_replace:
-        if tag in ds:
-            dummy_date = il.get_fake_ID(ds[tag].value, _date_shift_pattern)
-            ds[tag].value = dummy_date #'Anonymized'
-
-    if study_id is not None and (0x0020, 0x0010) in ds:
-        ds[0x0020, 0x0010].value = study_id
-    
-    ds.save_as(fout)
-    logger.debug('Anonymized %s' % fout)
     return 0
 
 def write_to_csv(fname, array, header, subject):
@@ -179,11 +153,12 @@ def write_to_csv(fname, array, header, subject):
             writer.writerow(header)
             writer.writerow(array)
 
-def anonymize_fields(fname, fields_to_remove, fields_to_replace = None, dates_to_replace = None, study_id = None, odir = None):
+def anonymize_fields(dm_dbt, fields_to_remove, fields_to_replace, dates_to_replace, study_id, odir):
 
-    logger.debug('Anonymizing fields in %s' % fname)
+    logger.debug('Anonymizing fields in %s' % dm_dbt.fname)
 
-    _, tail = os.path.split(fname)
+    ds = dm_dbt.dcm
+    _, tail = os.path.split(dm_dbt.fname)
     fout = os.path.join(odir, tail)
 
     for tag in fields_to_replace:
