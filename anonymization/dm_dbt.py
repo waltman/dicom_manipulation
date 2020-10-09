@@ -61,6 +61,45 @@ class DM_DBT:
     def is_uncompressed(self):
         return self.dcm.file_meta.TransferSyntaxUID in DM_DBT.uncompressed_uids
 
+    def tomo_type(self):
+        desc = self.dcm.SeriesDescription
+
+        if 'C-View' in desc:
+            return 'PROC_C-View'
+        elif 'Raw Tomosynthesis Projection' in desc:
+            return 'RAW_Tomo_PR'
+        elif 'Tomosynthesis Projection' in desc:
+            return 'PROC_Tomo_PR'
+        elif 'Tomosynthesis Reconstruction' in desc: #SCO
+            return 'PROC_Tomo_RC'
+        elif 'Breast Tomosynthesis Image' in desc: #BTO
+            return 'PROC_Tomo_RC'
+        else:
+            self.logger.debug('%s unexpected SeriesDescripion=%s' % (self.fname, self.dcm.SeriesDescription))
+            return desc
+
+    def tomo_name(self, dummy_id):
+        tt = self.tomo_type()
+        if tt == 'PROC_C-View':
+            proc_raw = 'PROC'
+            pr_rc = 'C-View'
+        elif tt == 'RAW_Tomo_PR':
+            proc_raw = 'RAW'
+            pr_rc = 'PR'
+        elif tt == 'PROC_Tomo_PR':
+            proc_raw = 'PROC'
+            pr_rc = 'PR'
+        elif tt == 'PROC_Tomo_RC':
+            proc_raw = 'PROC'
+            pr_rc = 'RC'
+        else:
+            self.logged.debug('unexpected tomo_type of %s' % tt)
+            return 'unknown'
+
+        lat = self.dcm.Laterality
+        view_pos = self.dcm.ViewPosition
+        return '%s_%s_%s%s_%s' % (dummy_id, proc_raw, lat, view_pos, pr_rc)
+
     def decompress(self, tmpdir):
         if not self.is_tomo() or self.is_uncompressed():
             return
