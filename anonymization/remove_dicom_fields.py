@@ -9,7 +9,7 @@ import traceback as tb
 import logging as log
 from pandas import read_csv
 from tempfile import mkdtemp
-from shutil import rmtree
+from shutil import rmtree, copy2
 
 import id_linking as il
 from dm_dbt import DM_DBT
@@ -123,6 +123,11 @@ def anonymize_input(fname, fields_to_remove, fields_to_replace = None, dates_to_
     dm_dbt.decompress(tmpdir)
     dm_dbt.expand(tmpdir)
 
+    copy_images(dummy_id, tmpdir, dm_dbt, odir)
+
+    # cleanup tmpdir
+    rmtree(tmpdir)
+
     return 0
 
 def write_to_csv(fname, array, header, subject):
@@ -190,6 +195,33 @@ def anonymize_fields(dm_dbt, fields_to_remove, fields_to_replace, dates_to_repla
     ds.save_as(fout)
     logger.debug('Anonymized %s' % fout)
     return 0
+
+def copy_images(dummy_id, tmpdir, dm_dbt, odir):
+    # make standard subdirectories if they don't already exist
+    subdirs = ['PROC_C-View',
+               'PROC_Tomo_PR',
+               'PROC_Tomo_RC',
+               'RAW_Tomo_PR',
+              ]
+    for subdir in subdirs:
+        dirpath = os.path.join(odir, subdir)
+        if not os.path.isdir(dirpath):
+            os.mkdir(dirpath)
+
+    tomo_type = dm_dbt.tomo_type()
+    tomo_name = dm_dbt.tomo_name(dummy_id)
+    subdir = os.path.join(odir, tomo_type, tomo_name)
+    os.mkdir(subdir)
+
+    fnames = dm_dbt.files()
+    if type(files) is str:
+        fname = tomo_name + '.dcm'
+        dst = os.path.join(subdir, fname)
+        copy2(fnames, dst)
+    else:
+        for fname in files:
+            dst = os.path.join(subdir, os.path.basename(fname))
+            copy2(fname, dst)
 
 def create_parser():
     import argparse
