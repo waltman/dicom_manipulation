@@ -213,13 +213,13 @@ def copy_images(dummy_id, tmpdir, dm_dbt, odir):
     subdir = os.path.join(odir, tomo_type, tomo_name)
     os.mkdir(subdir)
 
-    fnames = dm_dbt.files()
-    if type(files) is str:
-        fname = tomo_name + '.dcm'
-        dst = os.path.join(subdir, fname)
+    fnames = dm_dbt.files(tmpdir)
+    if type(fnames) is str:
+        dst_fname = tomo_name + '.dcm'
+        dst = os.path.join(subdir, dst_fname)
         copy2(fnames, dst)
     else:
-        for fname in files:
+        for fname in fnames:
             dst = os.path.join(subdir, os.path.basename(fname))
             copy2(fname, dst)
 
