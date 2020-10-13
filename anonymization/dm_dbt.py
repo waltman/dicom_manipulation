@@ -93,7 +93,7 @@ class DM_DBT:
             proc_raw = 'PROC'
             pr_rc = 'RC'
         else:
-            self.logged.debug('unexpected tomo_type of %s' % tt)
+            self.logger.debug('unexpected tomo_type of %s' % tt)
             return 'unknown'
 
         lat = self.dcm.Laterality
