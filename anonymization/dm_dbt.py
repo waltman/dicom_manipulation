@@ -78,6 +78,26 @@ class DM_DBT:
             self.logger.debug('%s unexpected SeriesDescripion=%s' % (self.fname, self.dcm.SeriesDescription))
             return desc
 
+    def laterality(self):
+        if 'Laterality' in self.dcm:
+            return self.dcm.Laterality
+        elif 'ImageLaterality' in self.dcm:
+            return self.dcm.ImageLaterality
+        elif 'ProtocolName' in self.dcm:
+            return self.dcm.ProtocolName.split()[0]
+        else:
+            self.logger.warning('unable to determine laterality')
+            return 'unknown'
+
+    def view(self):
+        if 'ViewPosition' in self.dcm:
+            return self.dcm.ViewPosition
+        elif 'ProtocolName' in self.dcm:
+            return self.dcm.ProtocolName.split()[1]
+        else:
+            self.logger.warning('unable to determine view')
+            return 'unknown'
+
     def tomo_name(self, dummy_id):
         tt = self.tomo_type()
         if tt == 'PROC_C-View':
@@ -96,8 +116,8 @@ class DM_DBT:
             self.logger.debug('unexpected tomo_type of %s' % tt)
             return 'unknown'
 
-        lat = self.dcm.Laterality
-        view_pos = self.dcm.ViewPosition
+        lat = self.laterality()
+        view_pos = self.view()
         return '%s_%s_%s%s_%s' % (dummy_id, proc_raw, lat, view_pos, pr_rc)
 
     def decompress(self, tmpdir):
