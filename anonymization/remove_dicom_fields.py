@@ -9,7 +9,7 @@ import traceback as tb
 import logging as log
 from pandas import read_csv
 from tempfile import mkdtemp
-from shutil import rmtree, copy2
+from shutil import rmtree, copy2, move
 
 import id_linking as il
 from dm_dbt import DM_DBT
@@ -211,6 +211,7 @@ def copy_images(dummy_id, tmpdir, dm_dbt, odir):
     tomo_type = dm_dbt.tomo_type()
     tomo_name = dm_dbt.tomo_name(dummy_id)
     subdir = os.path.join(odir, tomo_type, tomo_name)
+    subdir = handle_collisions(subdir)
     os.mkdir(subdir)
 
     fnames = dm_dbt.files(tmpdir)
@@ -222,6 +223,17 @@ def copy_images(dummy_id, tmpdir, dm_dbt, odir):
         for fname in fnames:
             dst = os.path.join(subdir, os.path.basename(fname))
             copy2(fname, dst)
+
+def handle_collisions(subdir):
+    dirnames = glob(subdir + '*')
+    if len(dirnames) == 0: # no collisions, so keep name
+        return subdir
+    else:
+        if len(dirnames) == 1 and subdir in dirnames: # at _1 to the end of it
+            move(subdir, subdir + "_1")
+
+        # now number subdir so it's the number of dirnames in the glob, + 1
+        return '%s_%d' % (subdir, len(dirnames) + 1)
 
 def create_parser():
     import argparse
