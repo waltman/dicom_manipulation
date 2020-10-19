@@ -123,9 +123,11 @@ def anonymize_input(fname, fields_to_remove, fields_to_replace = None, dates_to_
     dm_dbt.decompress(tmpdir)
     dm_dbt.expand(tmpdir)
 
+    logger.debug('Copying images')
     copy_images(dummy_id, tmpdir, dm_dbt, odir)
 
     # cleanup tmpdir
+    logger.debug('Removing temp files')
     rmtree(tmpdir)
 
     return 0
@@ -218,11 +220,19 @@ def copy_images(dummy_id, tmpdir, dm_dbt, odir):
     if type(fnames) is str:
         dst_fname = tomo_name + '.dcm'
         dst = os.path.join(subdir, dst_fname)
-        copy2(fnames, dst)
+        command = 'copy /B /Y "%s" "%s"' % (fnames, dst)
+        logger.debug(command)
+        status = os.system(command)
+        if status != 0:
+            logger.warning('Copy failed with error %d' % status)
     else:
         for fname in fnames:
             dst = os.path.join(subdir, os.path.basename(fname))
-            copy2(fname, dst)
+            command = 'copy /B /Y "%s" "%s"' % (fname, dst)
+            logger.debug(command)
+            status = os.system(command)
+            if status != 0:
+                logger.warning('Copy failed with error %d' % status)
 
 def handle_collisions(subdir):
     dirnames = glob(subdir + '*')
