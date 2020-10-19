@@ -136,6 +136,7 @@ class DM_DBT:
 
         # run the program
         self.logger.debug('Decompressing')
+        self.logger.debug('command = "%s"' % command)
         status = os.system(command)
         if status != 0:
             self.logger.warning('gdcmconv.exe failed with error %d' % status)
@@ -166,6 +167,7 @@ class DM_DBT:
 
         # run the program
         self.logger.debug('Expanding')
+        self.logger.debug('command = "%s"' % command)
         status = os.system(command)
         if status != 0:
             self.logger.warning('gexpand.exe failed with error %d' % status)
