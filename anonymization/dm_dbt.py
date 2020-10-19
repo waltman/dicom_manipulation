@@ -48,7 +48,8 @@ class DM_DBT:
             return False
 
     def is_sco(self):
-        return 'Tomosynthesis Reconstruction' in self.dcm.SeriesDescription
+        desc = self.dcm.SeriesDescription
+        return 'Tomosynthesis Reconstruction' in desc or 'Tomosynthesis Projection' in desc or 'Breast Tomosynthesis Image' in desc
 
     def is_raw(self):
         if 'Series Description' in self.dcm and 'Raw' in self.dcm['Series Description']:
