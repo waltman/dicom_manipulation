@@ -52,9 +52,9 @@ class DM_DBT:
         return 'Tomosynthesis Reconstruction' in desc or 'Tomosynthesis Projection' in desc or 'Breast Tomosynthesis Image' in desc
 
     def is_raw(self):
-        if 'Series Description' in self.dcm and 'Raw' in self.dcm['Series Description']:
+        if 'SeriesDescription' in self.dcm and 'Raw' in self.dcm.SeriesDescription:
             return True
-        elif 'PresentationIntentType' in self.dcm and self.dcm['PresentationIntentType'] == 'FOR PROCESSING':
+        elif 'PresentationIntentType' in self.dcm and self.dcm.PresentationIntentType == 'FOR PROCESSING':
             return True
         else:
             return False
