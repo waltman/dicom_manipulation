@@ -1,4 +1,4 @@
-import dicom
+import pydicom
 import os
 from glob import glob
 
@@ -12,7 +12,7 @@ class DM_DBT:
     def __init__(self, fname, logger):
         self.fname = fname
         self.logger = logger
-        self.dcm = dicom.read_file(fname)
+        self.dcm = pydicom.read_file(fname)
         if 'ImagesInAcquisition' in self.dcm:
             self.num_images = int(self.dcm.ImagesInAcquisition)
         else:

@@ -3,7 +3,7 @@ __author__ = 'HsiehM'
 __EXEC__ = __file__
 
 # Import modules here
-import os, sys, csv, lockfile, dicom
+import os, sys, csv, lockfile
 from glob import glob
 import traceback as tb
 import logging as log
