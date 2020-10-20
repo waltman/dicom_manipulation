@@ -94,7 +94,9 @@ def anonymize_input(fname, fields_to_remove, fields_to_replace = None, dates_to_
     head, tail = os.path.split(fname)
     _, dir_id = os.path.split(head)
 
+    logger.debug('loading dicom...')
     dm_dbt = DM_DBT(fname, logger)
+    logger.debug('done loading dicom.')
     if not dm_dbt.is_tomo():
         logger.debug('%s is not tomo, skipping' % fname)
         return 0
