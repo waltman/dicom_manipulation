@@ -290,6 +290,11 @@ def create_parser():
                         dest = 'verbosity',
                         action = 'count',
                         help = 'Increase verbosity of the program. By calling the flag multiple time, the verbosity can be further increased. Max: 2 levels (-v -v)')
+    parser.add_argument('-l', '--logfile',
+                        dest = 'logfile',
+                        action = 'store',
+                        type = str,
+                        help = 'Filename to save log messages. If not specified, log messages will only go to stderr.')
                         
     return parser
     
@@ -313,7 +318,6 @@ def main(argv = None):
     print "Executing in", exe_folder
 
     # Start of the program
-    
     log_level = log.WARNING
     if args.verbosity == 2:
         log_level = log.DEBUG
@@ -322,6 +326,13 @@ def main(argv = None):
              
     logger.setLevel(log_level)
     
+    if args.logfile:
+        chfh = log.FileHandler(args.logfile)
+        formatter2 = log.Formatter(fmt = '%(asctime)s %(name)s %(levelname)s: %(message)s',
+                                  datefmt = '%Y%m%d-%H:%M:%S')
+        chfh.setFormatter(formatter2)
+        logger.addHandler(chfh)
+
     #logger.info('Fields anonymizing: %s' % args.fields)
     dcms = discover_files(args.idir, recursive = args.recursive)
     logger.info('Anonymizing %d dicoms in %s' % (len(dcms), args.idir)) 
