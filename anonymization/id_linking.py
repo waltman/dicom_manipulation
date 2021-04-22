@@ -25,9 +25,7 @@ def get_real_ID(dummy_ID, shift_pattern):
 	    
 
         real_ID[k] = str(dummy);
-        c += 1;
-        if c > len(shift_pattern):
-            c = 0;
+        c = (c + 1) % len(shift_pattern)
     
     return "".join(real_ID)
 
@@ -54,9 +52,7 @@ def get_fake_ID(real_ID, shift_pattern):
             dummy = dummy - 10;
             
         dummy_ID[k] = str(dummy);
-        c += 1;
-        if c > len(shift_pattern):
-            c = 0;
+        c = (c + 1) % len(shift_pattern)
         
     return "".join(dummy_ID)
     
