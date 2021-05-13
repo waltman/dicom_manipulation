@@ -23,7 +23,7 @@ Patient ID,0x00100020,Replace
 Patient’s Birth Date,0x00100030,Remove
 Patient’s Birth Time,0x00100032,Remove
 Patient’s Sex,0x00100040,Keep
-Other Patient Ids,0x00101000,Replace
+Other Patient Ids,0x00101000,Remove
 Other Patient Names,0x00101001,Remove
 Patient’s Birth Name,0x00101005,Remove
 Patient’s Age,0x00101010,Keep
