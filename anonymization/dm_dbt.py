@@ -18,6 +18,7 @@ class DM_DBT:
         else:
             self.num_images = 1
         self.compname = None
+        self.anonname = None
         self.tmpfiles = []
         self.tomofiles = []
 
@@ -157,7 +158,7 @@ class DM_DBT:
         if self.compname:
             in_fname = self.compname
         else:
-            in_fname = os.path.join(tmpdir, self.fname)
+            in_fname = self.anonname
 
         # construct command to run
         root = os.path.dirname(__file__)

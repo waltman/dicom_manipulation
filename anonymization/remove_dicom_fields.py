@@ -171,7 +171,7 @@ def anonymize_fields(dm_dbt, fields_to_remove, fields_to_replace, dates_to_repla
 
     ds = dm_dbt.dcm
     _, tail = os.path.split(dm_dbt.fname)
-    fout = os.path.join(odir, tail)
+    dm_dbt.anonname = os.path.join(odir, tail)
 
     for tag in fields_to_replace:
         if tag in ds:
@@ -196,8 +196,8 @@ def anonymize_fields(dm_dbt, fields_to_remove, fields_to_replace, dates_to_repla
     if study_id is not None and (0x0020, 0x0010) in ds:
         ds[0x0020, 0x0010].value = study_id
 
-    ds.save_as(fout)
-    logger.debug('Anonymized %s' % fout)
+    ds.save_as(dm_dbt.anonname)
+    logger.debug('Anonymized %s' % dm_dbt.anonname)
     return 0
 
 def copy_images(dummy_id, tmpdir, dm_dbt, odir):
